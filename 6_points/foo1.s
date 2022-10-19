@@ -32,16 +32,18 @@ get_array:
 	mov	rbp, rsp
 	push	r12
 	push	rbx
-	sub	rsp, 32
+	push	r13
+	# sub	rsp, (8 + 32)
+	sub	rsp, 40
 	# mov	QWORD PTR -24[rbp], rdi  # по адресу rbp-24 лежит указатель на массив а, т е *а
 	mov	r12, rdi  # теперь указатель на массив а лежит в r12, т е r12 = *a
 	# mov	DWORD PTR -28[rbp], esi  # по адресу rbp-28 лежит аргумент size
 	mov	ebx, esi  # теперь аргмент size лежит в ebx, т е ebx = size
-	mov	DWORD PTR -4[rbp], 0  # по адресу rbp-4 лежит лок.переменная i
-	# придется положить лок. переменную i в ОЗУ: регистров свободных больше нет.
+	# mov	DWORD PTR -4[rbp], 0  # по адресу rbp-4 лежит лок.переменная i
+	mov	r13d, 0  # теперь лок. переменная i лежит в регистре r13d
 	jmp	.L3
 .L4:
-	mov	eax, DWORD PTR -4[rbp]  # теперь i лежит также в eax
+	mov	eax, r13d  # теперь i лежит также в eax
 	cdqe
 	lea	rdx, 0[0+rax*4]  # в rdx лежит смещение относительно массива, т е i*4 (т к массив 4байтных элементов)
 	mov	rax, r12  # в rax лежит *a
@@ -51,13 +53,15 @@ get_array:
 	mov	rdi, rax  # в rdi лежит форматная строка -  "%d"
 	mov	eax, 0  # возвращаемое значение функции
 	call	__isoc99_scanf@PLT
-	add	DWORD PTR -4[rbp], 1  # <=> ++i
+	add	r13d, 1  # <=> ++i
 .L3:
-	mov	eax, DWORD PTR -4[rbp]  # в eax лежит i
+	mov	eax, r13d  # в eax лежит i
 	cmp	eax, ebx  # <=> i < size
 	jl	.L4  # <=> возвращаемся в цикл, если условие выше выполнено
 	nop
 	nop
+	add	rsp, 8
+	pop	r13
 	pop	rbx
 	pop	r12
 	leave
@@ -70,6 +74,8 @@ create_new_arr:
 	push	rbp
 	mov	rbp, rsp
 	push	rbx
+	push	r12
+	push	r13
 	sub	rsp, 8
 	# mov	QWORD PTR -24[rbp], rdi  # rdi = a, по адресу rbp-24 лежит аргумент int* a
 	# теперь а* лежит только в rdi, озу не трогаем
@@ -78,11 +84,13 @@ create_new_arr:
 	# mov	DWORD PTR -36[rbp], edx  # edx = size_a, по адресу rbp-36 лежит аргумент int size_a 
 	# теперь size_a лежит только в edx, озу не трогаем
 	mov	ebx, edx  # кладем size_a в ebx, т к в edx будет меняться в силу изменения rbx
-	mov	DWORD PTR -4[rbp], 0  # лок. переменная j, лежит по адресу rbp-4 # свободных 32биных регистров, которые не были бы затерты 64битными решистрами, не осталось, поэтому придется класть j в озу 
-	mov	DWORD PTR -8[rbp], 1  # лок. переменная i (счетчик цикла), лежит по адресу rbp-8 # свободных 32биных регистров, которые не были бы затерты 64битными регистрами, не осталось, поэтому придется класть i в озу 
+	# mov	DWORD PTR -4[rbp], 0  # лок. переменная j, лежит по адресу rbp-4 # свободных 32биных регистров, которые не были бы затерты 64битными решистрами, не осталось, поэтому придется класть j в озу 
+	mov	r12d, 0  # лок. переменная j теперь лежит в регистре r12d
+	# mov	DWORD PTR -8[rbp], 1  # лок. переменная i (счетчик цикла), лежит по адресу rbp-8 # свободных 32биных регистров, которые не были бы затерты 64битными регистрами, не осталось, поэтому придется класть i в озу 
+	mov	r13d, 1  # теперь лок. переменная i (счетчик цикла) лежит в регистре r13d
 	jmp	.L6
 .L8:
-	mov	eax, DWORD PTR -8[rbp]  # eax = i
+	mov	eax, r13d # eax = i
 	cdqe
 	lea	rdx, 0[0+rax*4]  # смещение массива на 4*i
 	mov	rax, rdi  # в rax лежит *a
@@ -92,7 +100,7 @@ create_new_arr:
 	mov	eax, DWORD PTR [rax]  # eax = значение 0-вого элемента массива
 	cmp	edx, eax  # <=> a[i] != a[0] 
 	je	.L7
-	mov	eax, DWORD PTR -8[rbp]  # eax = i
+	mov	eax, r13d  # eax = i
 	cdqe
 	lea	rdx, 0[0+rax*4]  # смещение массива на 4*i
 	mov	rax, rdi  # в rax лежит *a
@@ -107,28 +115,30 @@ create_new_arr:
 	mov	eax, DWORD PTR [rax]
 	cmp	edx, eax
 	je	.L7
-	mov	eax, DWORD PTR -8[rbp]
+	mov	eax, r13d
 	cdqe
 	lea	rdx, 0[0+rax*4]
 	mov	rax, rdi
 	add	rax, rdx
-	mov	edx, DWORD PTR -4[rbp]
+	mov	edx, r12d
 	movsx	rdx, edx
 	lea	rcx, 0[0+rdx*4]
 	mov	rdx, rsi
 	add	rdx, rcx
 	mov	eax, DWORD PTR [rax]
 	mov	DWORD PTR [rdx], eax
-	add	DWORD PTR -4[rbp], 1
+	add	r12d, 1
 .L7:
-	add	DWORD PTR -8[rbp], 1
+	add	r13d, 1
 .L6:
-	mov	eax, DWORD PTR -8[rbp]
+	mov	eax, r13d
 	cmp	eax, ebx
 	jl	.L8
 	nop
 	nop
 	add	rsp, 8
+	pop	r13
+	pop	r12
 	pop	rbx
 	pop	rbp
 	ret
@@ -145,9 +155,13 @@ print_array:
 	mov	rbp, rsp
 	sub	rsp, 32
 	push	rbx
-	push	rbx
-	mov	QWORD PTR -24[rbp], rdi  # rdi = адрес массива a, который(адрес) лежит по адресу rbp-24
-	mov	DWORD PTR -28[rbp], esi  # esi = переменная size, лежащая по адресу rbp-28
+	push	r12
+	push	r13
+	sub	rsp, 8
+	# mov	QWORD PTR -24[rbp], rdi  # rdi = адрес массива a, который(адрес) лежит по адресу rbp-24
+	mov	r13, rdi  # теперь адрес массива a лежит в регистре r13
+	# mov	DWORD PTR -28[rbp], esi  # esi = переменная size, лежащая по адресу rbp-28
+	mov	r12d, esi
 	# mov	DWORD PTR -4[rbp], 0  # лок.переменная i лежит по адресу rbp-4
 	mov	ebx, 0
 	jmp	.L10
@@ -155,7 +169,7 @@ print_array:
 	mov	eax, ebx  # в eax теперь лежит i
 	cdqe
 	lea	rdx, 0[0+rax*4]  # смещение
-	mov	rax, QWORD PTR -24[rbp]
+	mov	rax, r13
 	add	rax, rdx  # добавляем смещение к адресу массива
 	mov	eax, DWORD PTR [rax] 
 	mov	esi, eax  # второй аргумент функции - a[i]
@@ -166,11 +180,13 @@ print_array:
 	add	ebx, 1
 .L10:
 	mov	eax, ebx  # eax = i
-	cmp	eax, DWORD PTR -28[rbp]  # i < size ?
+	cmp	eax, r12d  # i < size ?
 	jl	.L11
 	nop
 	nop
-	pop	rbx
+	add	rsp, 8
+	pop	r13
+	pop	r12
 	pop	rbx
 	leave
 	ret
