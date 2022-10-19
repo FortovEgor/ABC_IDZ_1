@@ -18,7 +18,7 @@ get_array_size:
 	mov	rsi, rax  # в rsi кладем второй аргумент функции scanf - size
 	lea	rax, .LC0[rip]  # по адресу(метке) .LC0 лежит модификатор типа - "%d"
 	mov	rdi, rax  # в rdi кладем первый аргумент функции scanf - модификатор типа "%d"
-	mov	eax, 0  # возвращаемое значение функции (хотя функция иммет тип возвращ.значения void)
+	mov	eax, 0
 	call	__isoc99_scanf@PLT
 	nop
 	leave
@@ -51,7 +51,7 @@ get_array:
 	mov	rsi, rax  # в rsi лежит второй аргумент - адрес i-ого элемента массива а
 	lea	rax, .LC0[rip]  # по адресу(метке) .LC0 лежит модификатор типа - "%d"
 	mov	rdi, rax  # в rdi лежит форматная строка -  "%d"
-	mov	eax, 0  # возвращаемое значение функции
+	mov	eax, 0
 	call	__isoc99_scanf@PLT
 	add	r13d, 1  # <=> ++i
 .L3:
@@ -175,7 +175,7 @@ print_array:
 	mov	esi, eax  # второй аргумент функции - a[i]
 	lea	rax, .LC1[rip]  # по адресу (метке) .LC1 лежит форматная строка "%d", теперь она лежит в rax
 	mov	rdi, rax  # rdi = rax = .LC1
-	mov	eax, 0  # возвращаемое значение функции
+	mov	eax, 0
 	call	printf@PLT
 	add	ebx, 1
 .L10:
