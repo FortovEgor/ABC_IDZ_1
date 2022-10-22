@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+// ПРОГРАММА ЗАПУСКАЕТСЯ И ИСПОЛНЯЕТСЯ КОРРЕКТНО ПРИ НАЛИЧИИ ФАЙЛА input.txt
 void get_array_size(int* size, FILE *input) {
 	// scanf("%d", size);
 	fscanf(input, "%d", size);
